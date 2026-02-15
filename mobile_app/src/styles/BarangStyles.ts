@@ -6,8 +6,26 @@ export const BarangStyles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#f5f5f5',
     paddingTop: 10,
-    paddingBottom: 70, // Memberi ruang untuk TabNavigator
-    paddingHorizontal: 16, // Padding umum dari MainLayout
+    paddingBottom: 70,
+    paddingHorizontal: 16,
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#f5f5f5',
+  },
+  errorContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#f5f5f5',
+    padding: 16,
+  },
+  errorText: {
+    fontSize: 16,
+    color: 'red',
+    textAlign: 'center',
   },
   addButton: {
     flexDirection: 'row',

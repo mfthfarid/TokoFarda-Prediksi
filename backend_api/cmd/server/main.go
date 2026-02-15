@@ -1,42 +1,46 @@
 package main
 
+// import (
+// 	"log"
+// 	"os"
+// 	"time"
+
+// 	"github.com/gin-gonic/gin"
+// 	"github.com/golang-jwt/jwt/v5"
+// 	"github.com/joho/godotenv"
+// 	"golang.org/x/crypto/bcrypt"
+// 	"gorm.io/driver/mysql"
+// 	"gorm.io/gorm"
+// )
+
+// backend/main.go
+
 import (
+	// "backend/config"
+	// "backend/routes"
+	"github.com/mfthfarid/TokoFarda-Prediksi/backend_api/internal/config"
+	"github.com/mfthfarid/TokoFarda-Prediksi/backend_api/internal/models"
+	"github.com/mfthfarid/TokoFarda-Prediksi/backend_api/internal/routes"
+
 	"log"
 	"os"
-	"time"
 
 	"github.com/gin-gonic/gin"
-	"github.com/golang-jwt/jwt/v5"
-	"github.com/joho/godotenv"
-	"golang.org/x/crypto/bcrypt"
-	"gorm.io/driver/mysql"
-	"gorm.io/gorm"
+	// "github.com/mfthfarid/TokoFarda-Prediksi/backend_api/internal/models"
 )
 
-type User struct {
-	ID       uint   `gorm:"primaryKey"`
-	Email    string `gorm:"uniqueIndex;not null"`
-	Password string `gorm:"not null"`
-}
-
 func main() {
-	godotenv.Load()
+	config.ConnectDB()
 
-	dsn := os.Getenv("DB_USER") + ":" + os.Getenv("DB_PASS") + "@tcp(" + os.Getenv("DB_HOST") + ":" + os.Getenv("DB_PORT") + ")/" + os.Getenv("DB_NAME") + "?charset=utf8mb4&parseTime=True"
-	db, err := gorm.Open(mysql.Open(dsn), &gorm.Config{})
-	if err != nil {
-		log.Fatal("Gagal koneksi DB:", err)
-	}
-
-	// Auto-migrate (aman untuk dev)
-	db.AutoMigrate(&User{})
+	// Auto-migrate
+	config.DB.AutoMigrate(&models.User{}, &models.Product{})
 
 	r := gin.Default()
 
 	// CORS (untuk React Native)
 	r.Use(func(c *gin.Context) {
 		c.Header("Access-Control-Allow-Origin", "*")
-		c.Header("Access-Control-Allow-Methods", "POST, OPTIONS")
+		c.Header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
 		c.Header("Access-Control-Allow-Headers", "Content-Type, Authorization")
 		if c.Request.Method == "OPTIONS" {
 			c.AbortWithStatus(204)
@@ -45,53 +49,14 @@ func main() {
 		c.Next()
 	})
 
-	r.POST("/register", func(c *gin.Context) {
-		var input struct {
-			Email    string `json:"email" binding:"required,email"`
-			Password string `json:"password" binding:"required,min=6"`
-		}
-		if err := c.ShouldBindJSON(&input); err != nil {
-			c.JSON(400, gin.H{"error": err.Error()})
-			return
-		}
+	// Routes
+	r.POST("/register", routes.Register)
+	r.POST("/login", routes.Login)
 
-		hashed, _ := bcrypt.GenerateFromPassword([]byte(input.Password), 12)
-		user := User{Email: input.Email, Password: string(hashed)}
-		if err := db.Create(&user).Error; err != nil {
-			c.JSON(400, gin.H{"error": "Email sudah dipakai"})
-			return
-		}
-		c.JSON(201, gin.H{"message": "Berhasil daftar!"})
-	})
-
-	r.POST("/login", func(c *gin.Context) {
-		var input struct {
-			Email    string `json:"email" binding:"required,email"`
-			Password string `json:"password" binding:"required"`
-		}
-		if err := c.ShouldBindJSON(&input); err != nil {
-			c.JSON(400, gin.H{"error": err.Error()})
-			return
-		}
-
-		var user User
-		if err := db.Where("email = ?", input.Email).First(&user).Error; err != nil {
-			c.JSON(401, gin.H{"error": "Email/password salah"})
-			return
-		}
-
-		if err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(input.Password)); err != nil {
-			c.JSON(401, gin.H{"error": "Email/password salah"})
-			return
-		}
-
-		token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
-			"user_id": user.ID,
-			"exp":     time.Now().Add(24 * time.Hour).Unix(),
-		})
-		tokenString, _ := token.SignedString([]byte(os.Getenv("JWT_SECRET")))
-		c.JSON(200, gin.H{"token": tokenString})
-	})
+	// Products routes
+	r.GET("/products", routes.GetProducts)
+	r.GET("/products/:id", routes.GetProduct)
+	r.POST("/products", routes.AddProduct)
 
 	port := os.Getenv("PORT")
 	if port == "" {

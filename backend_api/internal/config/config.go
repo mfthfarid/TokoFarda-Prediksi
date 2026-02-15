@@ -1,7 +1,7 @@
+// backend/config/db.go
 package config
 
 import (
-	"fmt"
 	"log"
 	"os"
 
@@ -12,25 +12,17 @@ import (
 
 var DB *gorm.DB
 
-func InitDB() {
+func ConnectDB() {
 	err := godotenv.Load()
 	if err != nil {
-		log.Println("File .env tidak ditemukan, menggunakan env sistem")
+		log.Fatal("Error loading .env file")
 	}
 
-	dsn := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?charset=utf8mb4&parseTime=True&loc=Local",
-		os.Getenv("DB_USER"),
-		os.Getenv("DB_PASS"),
-		os.Getenv("DB_HOST"),
-		os.Getenv("DB_PORT"),
-		os.Getenv("DB_NAME"),
-	)
-
-	var errDB error
-	DB, errDB = gorm.Open(mysql.Open(dsn), &gorm.Config{})
-	if errDB != nil {
-		log.Fatal("Gagal terhubung ke database:", errDB)
+	dsn := os.Getenv("DB_USER") + ":" + os.Getenv("DB_PASS") + "@tcp(" + os.Getenv("DB_HOST") + ":" + os.Getenv("DB_PORT") + ")/" + os.Getenv("DB_NAME") + "?charset=utf8mb4&parseTime=True&loc=Local"
+	database, err := gorm.Open(mysql.Open(dsn), &gorm.Config{})
+	if err != nil {
+		log.Fatal("Gagal koneksi DB:", err)
 	}
 
-	log.Println("✅ Koneksi database berhasil")
+	DB = database
 }
