@@ -1,37 +1,36 @@
 // mobile/screens/Barang.tsx
 import React from 'react';
-import { ScrollView, View, Text, TouchableOpacity } from 'react-native';
+import {
+  ScrollView,
+  View,
+  Text,
+  TouchableOpacity,
+  ActivityIndicator,
+} from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { BarangStyles } from '../styles/BarangStyles';
-
-// Mock data barang
-const mockBarang = [
-  { id: 1, nama: 'Mie Instan', stok: 150, harga: 'Rp 8.000', status: 'normal' },
-  {
-    id: 2,
-    nama: 'Gula Pasir 1kg',
-    stok: 12,
-    harga: 'Rp 22.500',
-    status: 'low',
-  },
-  { id: 3, nama: 'Telur Ayam', stok: 45, harga: 'Rp 32.000', status: 'normal' },
-  {
-    id: 4,
-    nama: 'Minyak Goreng 2L',
-    stok: 3,
-    harga: 'Rp 48.000',
-    status: 'low',
-  },
-  {
-    id: 5,
-    nama: 'Beras Premium',
-    stok: 200,
-    harga: 'Rp 15.000',
-    status: 'normal',
-  },
-];
+import { useProducts } from '../hooks/useProducts';
 
 const Barang = () => {
+  const { products, loading, error } = useProducts();
+
+  if (loading) {
+    return (
+      <View style={BarangStyles.loadingContainer}>
+        <ActivityIndicator size="large" color="#FF6B35" />
+        <Text>Memuat data barang...</Text>
+      </View>
+    );
+  }
+
+  if (error) {
+    return (
+      <View style={BarangStyles.errorContainer}>
+        <Text style={BarangStyles.errorText}>Error: {error}</Text>
+      </View>
+    );
+  }
+
   return (
     <ScrollView style={BarangStyles.container}>
       {/* Tombol Tambah Barang */}
@@ -41,7 +40,7 @@ const Barang = () => {
       </TouchableOpacity>
 
       {/* Daftar Barang */}
-      {mockBarang.map(item => (
+      {products.map(item => (
         <View key={item.id} style={BarangStyles.barangItem}>
           <View style={BarangStyles.itemLeft}>
             <Text style={BarangStyles.itemName}>{item.nama}</Text>

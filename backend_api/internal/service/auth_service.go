@@ -5,7 +5,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/mfthfarid/TokoFarda-Prediksi/backend_api/internal/model"
+	"github.com/mfthfarid/TokoFarda-Prediksi/backend_api/internal/models"
 	"github.com/mfthfarid/TokoFarda-Prediksi/backend_api/internal/repository"
 
 	"os"
@@ -29,7 +29,7 @@ func (s *AuthService) Register(email, password string) error {
 	}
 
 	hashed, _ := bcrypt.GenerateFromPassword([]byte(password), 12)
-	user := &model.User{Email: email, Password: string(hashed)}
+	user := &models.User{Email: email, Password: string(hashed)}
 	return s.userRepo.Create(user)
 }
 

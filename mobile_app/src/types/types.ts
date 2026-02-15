@@ -16,7 +16,8 @@ export type Transaction = {
 };
 
 export type InventoryItem = {
-  name: string;
+  id: number;
+  nama: string;
   stok: number;
   harga: string;
   status: 'normal' | 'low';
